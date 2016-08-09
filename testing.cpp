@@ -17,7 +17,7 @@ int main(  int argc, char** argv ) {
 	Mat grayFrame;
 	Mat frameDiff;
 	Mat preGrayFrame;
-	int pix;
+	
 
 
 
@@ -27,41 +27,36 @@ int main(  int argc, char** argv ) {
 
 	cout <<"Frame columns: " <<frame.cols <<endl;			//look at frame cols and rows to DRAW
 	cout <<"Frame rows: " <<frame.rows <<endl;
-	
+
 	//in this case, cols = 640 and rows = 480 (check the cols and rows when run cmd, CHECK AND CHANGE BELOW);
-	int frameColumn = 640;
-	int frameRow = 480; 
+	int cols = 640;
+	int rows = 480;
 
 	namedWindow("Original",CV_WINDOW_AUTOSIZE);
-	namedWindow("Lane Detection",CV_WINDOW_AUTOSIZE);
+	namedWindow("Gray Scale",CV_WINDOW_AUTOSIZE);
 
 	for (; ; frameCount++){
 		cap >> frame;
 
-		rectangle(frame,Rect(270,0,100,480),Scalar(0,255,255),2,8,0);
-		
 		cvtColor(frame,grayFrame,CV_RGB2GRAY);				//make the frame to gray, take effect in gray scale;
-		frame.copyTo(preGrayFrame);
-		
-		int x,y;											//x run to cols, y run to rows
-		for ( ; x < preGrayFrame.cols; x++) {
-		preGrayFrame.at<uchar> (x,y) 
-	
-		
-		if (preGrayFrame.at<uchar>(x,y))
-		
-		
-		
-		frame.copyTo(preFrame);
-		absdiff(preFrame,frame,frameDiff);
-		
-		
-		
 
+		int x,y;											//x run to cols, y run to rows
+		for ( ; x < cols; x++) {
+			for ( ; y < rows; y++){
+				int grayPix = grayFrame.at<uchar>(x,y);
+				if (grayPix < 200) {
+					frame.at<Vec3b>(x,y) [0] = 0;
+					frame.at<Vec3b>(x,y) [1] = 0;
+					frame.at<Vec3b>(x,y) [2] = 255;
+				}
+			}
+		}
+
+	//	frame.copyTo(preGrayFrame);
 
 
 		imshow("Original",frame);
-//		frame.copyTo(frame);
+		imshow("Gray Scale",grayFrame);
 
 		if(waitKey(20) >= 0) break;
 	}
