@@ -20,21 +20,20 @@ int main(  int argc, char** argv ) {
 	int motion = 0;
 
 
+	char videoFileName[50] = ("testingVideo.MOV");
 
-
-	VideoCapture cap(0);				//open default camera
+	VideoCapture cap(videoFileName);				//open default camera
 	if(!cap.isOpened()){return -1;}
 	cap >> frame;
 
 	cout <<"Frame columns: " <<frame.cols <<endl;			//look at frame cols and rows to DRAW
 	cout <<"Frame rows: " <<frame.rows <<endl;
 
-	//in this case, cols = 640 and rows = 480 (check the cols and rows when run cmd, CHECK AND CHANGE BELOW);
 	int cols = frame.cols;
 	int rows = frame.rows;
 
-	namedWindow("Original",CV_WINDOW_AUTOSIZE);
-	namedWindow("Gray Scale",CV_WINDOW_AUTOSIZE);
+	namedWindow("Original",CV_WINDOW_NORMAL);
+	namedWindow("Gray Scale",CV_WINDOW_NORMAL);
 
 	for (; ; frameCount++){
 		cap >> frame;
@@ -47,37 +46,15 @@ int main(  int argc, char** argv ) {
 		int x, y;											 //x run to cols, y run to rows
 		for (x = 0 ; x < cols; x++) {
 			for (y = 0 ; y < rows; y++){
-				if (grayFrame.at<uchar>(y,x) > 200) {
+				if (grayFrame.at<uchar>(y,x) < 80) {
 				grayFrame.at<uchar>(y,x) = 0;
 
 				frame.at<Vec3b>(y,x) [0] = 0;
 				frame.at<Vec3b>(y,x) [1] = 255;
 				frame.at<Vec3b>(y,x) [2] = 255;
-
 				}
-
-
-
 			}
 		}
-
-
-
-
-
-//				int grayPix = grayFrame.at<uchar>(x,y);
-//				if (grayPix < 200) {
-//					frame.at<Vec3b>(x,y) [0] = 0;
-//					frame.at<Vec3b>(x,y) [1] = 0;
-//					frame.at<Vec3b>(x,y) [2] = 255;
-//				}
-//			}
-//		}
-//
-//	//	frame.copyTo(preGrayFrame);
-
-//		grayFrame.at<uchar>(y,x) = 255;
-
 
 		imshow("Original",frame);
 		imshow("Gray Scale",grayFrame);
