@@ -13,16 +13,17 @@ using namespace std;
 int main(  int argc, char** argv ) {
 	int frameCount;
 	Mat frame;
-	Mat preFrame;
 	Mat grayFrame;
-	Mat frameDiff;
-	Mat preGrayFrame;
+
 	int motion = 0;
 
+	//open video - change the videoFileName
+//	char videoFileName[50] = ("testingVideo.MOV");
+//	VideoCapture cap(videoFileName);
 
-	char videoFileName[50] = ("testingVideo.MOV");
+	//open default camera
+	VideoCapture cap(0);
 
-	VideoCapture cap(videoFileName);				//open default camera
 	if(!cap.isOpened()){return -1;}
 	cap >> frame;
 
@@ -32,8 +33,8 @@ int main(  int argc, char** argv ) {
 	int cols = frame.cols;
 	int rows = frame.rows;
 
-	namedWindow("Original",CV_WINDOW_NORMAL);
-	namedWindow("Gray Scale",CV_WINDOW_NORMAL);
+	namedWindow("Original",CV_WINDOW_AUTOSIZE);
+	namedWindow("Gray Scale",CV_WINDOW_AUTOSIZE);
 
 	for (; ; frameCount++){
 		cap >> frame;
