@@ -10,7 +10,7 @@
 
 using namespace cv;
 using namespace std;
-
+tran ten~ ten~ cuc ki lun
 int main(  int argc, char** argv ) {
 	int frameCount;
 	Mat frame;
