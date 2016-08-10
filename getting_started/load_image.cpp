@@ -10,12 +10,25 @@ using namespace cv;
 using namespace std;
 
 int main () {
-char imageFile[50] = "Korean_road.jpg";		//name image
-Mat image = imread (imageFile);			//read input image
+	char imageFile[50] = "Korean_road.jpg";			//name image
+	Mat image = imread (imageFile);				//read input image
 
-namedWindow ("Korean road Window");		//create image window named "Korean road Window"
-imshow("Korean road Window", image);		//show the image on Window
+	cout << "size: Height = " <<image.size() .height 
+	<<", Width = " <<image.size() .width <<endl;		//read the Size of the image
 
-waitKey(0);						//close Window until pressing any key "exit"
-return (0);
+	if (!image.data) {						//check if any errors reading image
+		cout << "Read image successfully" <<endl;
+		}
+
+	namedWindow("Korean road Window");			//create image window named "Korean road Window"
+	imshow("Korean road Window", image);			//show the image on Window
+
+	Mat result;							//flip [Horizontal(1), Vertical(0), Negative (-1)]
+	flip(image, result, -1);
+
+	namedWindow("Output image");				//create window and show image1
+	imshow("Output image", result);
+
+	waitKey(0);
+	return(0);
 }
