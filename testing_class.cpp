@@ -38,6 +38,8 @@ int main(  int argc, char** argv ) {
 	bool cirOn;
 	cirOn = false;
 
+	int counter = 0;
+
 	for (; ; frameCount++){
 		cap >> frame;
 
@@ -48,12 +50,22 @@ int main(  int argc, char** argv ) {
 			cout <<"Draw a rectangle" <<endl;
 			rectOn = !rectOn;
 		}
+
+		if(rectOn) {
+			counter = counter + 1;
+			if(counter == 100) {
+				counter = 0;
+				rectOn = false;
+//				break; 								//quit the window
+			}
+
+		}
 		if (rectOn) {
 			int mixBlue = rand()%256;
 			int mixGreen = rand()%256;
 			int mixRed = rand()%256;
 
-			rectangle(frame,Rect(100,100,50,50),Scalar(mixBlue, mixGreen, mixRed),5,8,0);
+			rectangle(frame,Rect(100,100,200,200),Scalar(mixBlue, mixGreen, mixRed),5,8,0);
 			cout <<"red = " <<mixBlue <<endl;
 			cout <<"green = " <<mixGreen <<endl;
 			cout <<"blue = " <<mixRed << endl;
@@ -64,6 +76,7 @@ int main(  int argc, char** argv ) {
 			cout <<"Draw a circle" <<endl;
 			cirOn = !cirOn;
 		}
+		
 		if (cirOn) {
 			circle(frame,Point(200,200),100,Scalar(0,0,255),5,8,0);
 		}
