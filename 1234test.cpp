@@ -18,8 +18,8 @@ int main(  int argc, char** argv ) {
 	Mat grayFrame;
 
 	int const lowThres = 100;
-	int ratio = 3;
-	int kernel_size = 3;
+	int ratio = 2;
+	int kernel_size = 5;
 	int highThres = lowThres*ratio;
 
 
@@ -42,11 +42,12 @@ int main(  int argc, char** argv ) {
 		cvtColor(input,grayFrame,CV_RGB2GRAY);
 
 		//reduce noise
-	//	boxFilter(grayFrame, detectedEdge, -1, Size(100,100), Point(-1,-1), BORDER_DEFAULT);
+//		boxFilter(grayFrame, detectedEdge, -1, Size(10,10), Point(-1,-1), BORDER_DEFAULT);
 
-		blur(grayFrame,detectedEdge, Size(3,3));
+//		blur(grayFrame,detectedEdge, Size(15,15));
+		GaussianBlur(grayFrame,detectedEdge,)
 
-		//Canny detection
+		//Canny detectiony
 		Canny(detectedEdge, detectedEdge, lowThres, highThres, kernel_size);
 
 		output = Scalar::all(0);
