@@ -26,6 +26,7 @@ int main (int argc, char** argv){
 	
 	for ( ; ; frameCount++) {
 		cap >> frame;
+		flip(frame,frame,1);
 		
 		
 		
