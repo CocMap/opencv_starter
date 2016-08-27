@@ -22,8 +22,8 @@ int main (int argc, char** argv){
 	int highThres = ratio*lowThres;
 	int kernel_size = 3;
 
-
-	VideoCapture cap(1);
+	char videoFileName[50] = ("testingVideo.mp4");
+	VideoCapture cap(videoFileName);
 	if(!cap.isOpened()){
 		cout << "Error loading camera, please check your camera connection! "
 				<<endl;											//check if the camera open successfully
@@ -33,12 +33,13 @@ int main (int argc, char** argv){
 	namedWindow("Original", CV_WINDOW_AUTOSIZE);
 	namedWindow("Gaussian",CV_WINDOW_AUTOSIZE);
 
-	namedWindow("Result",CV_WINDOW_AUTOSIZE);
-	namedWindow("1234",CV_WINDOW_AUTOSIZE);
+	namedWindow("Found Contour",CV_WINDOW_AUTOSIZE);
+	namedWindow("Drawing Contour",CV_WINDOW_AUTOSIZE);
 
 
 	for ( ; ; frameCount++) {
 		cap >> frame;
+		flip(frame, frame, 1);
 
 		GaussianBlur(frame,blurFrame,Size(3,3),7,7);
 		Canny(blurFrame,Canny_output,lowThres, highThres, kernel_size);
@@ -52,21 +53,30 @@ int main (int argc, char** argv){
 		findContours(inputContour, contour, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0,0));
 
 		//draw contour
-		Mat drawing = Mat::zeros(inputContour.size(),CV_8UC3);
+		Mat drawing = Mat::zeros(inputContour.size() ,CV_8UC3);
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < contour.size(); i++) {
 			drawContours(drawing,contour,i,Scalar(0,128,255),2,8,hierarchy,0,Point());
 		}
 
-		imshow("Original",frame);
-		imshow("Gaussian",Canny_output); 
 
-		imshow("Result",drawing);
-		imshow("1234",inputContour);
+		//hought
+
+
+
+
+
+
+
+		imshow("Original",frame);
+		imshow("Gaussian",Canny_output);
+
+		imshow("Found Contour", inputContour);
+		imshow("Drawing Contour",drawing);
 
 
 		if(waitKey(20) >= 0) break;
 	}
 
-	return 0;
+	return -1;
 }
