@@ -6,61 +6,115 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio/videoio.hpp>
+#include <iostream>
 
 using namespace cv;
 using namespace std;
 
-int main(  int argc, char** argv ) {
+int main (int argc, char** argv){
 	int frameCount;
-	Mat frame, input, output;
-	Mat detectedEdge;
-	Mat result;
+	Mat frame;
 	Mat grayFrame;
+	Mat blurFrame;
+	Mat Canny_output;
 
-	int const lowThres = 100;
-	int ratio = 2;
-	int kernel_size = 5;
-	int highThres = lowThres*ratio;
+	int kernel_size = 3;
+
+	char videoFileName[50] = ("testingVideo.mp4");
+		VideoCapture cap(videoFileName);
+		if(!cap.isOpened()){
+			cout << "Error loading camera, please check your camera connection! "
+					<<endl;											//check if the camera open successfully
+			return -1;
+		}
+		cap >> frame;
+
+		cout <<"The number of window rows: " <<frame.rows <<endl;
+		cout <<"The number of window cols: " <<frame.cols <<endl;
+
+		int cols = frame.cols;
+		int rows = frame.rows;
+
+		namedWindow("Gray",CV_WINDOW_NORMAL);
+		namedWindow("Result_gray",CV_WINDOW_NORMAL);
 
 
-	VideoCapture cap(0);
-	if(!cap.isOpened()) {
-		cout <<"Error loading camera" <<endl;
-		return -1;}
+		for ( ; ; frameCount++) {
+				cap >> frame;
 
-	namedWindow("Original",CV_WINDOW_AUTOSIZE);
-	namedWindow("Box Filter",CV_WINDOW_AUTOSIZE);
-	//namedWindow("Gaussian", CV_WINDOW_AUTOSIZE);
+				cvtColor(frame,grayFrame,CV_RGB2GRAY);
 
-	for(; ; frameCount++){
-		cap >> input;
+				GaussianBlur(grayFrame,blurFrame,Size(1,1),7,7);
 
-		//create a matrix of same type and size of input
-		output.create( input.size(), input.type());
+				int const lowThres = 100;
+				int ratio = 3;
+				int highThres = lowThres*ratio;
+				Canny(blurFrame, Canny_output, lowThres, highThres, kernel_size,3);
 
-		//transfer to gray image
-		cvtColor(input,grayFrame,CV_RGB2GRAY);
+				int x, y;
 
-		//reduce noise
-//		boxFilter(grayFrame, detectedEdge, -1, Size(10,10), Point(-1,-1), BORDER_DEFAULT);
+				//change the colof from gray Scale
+				for(x = 0; x < cols; x++) {
+					for (y = 500; y < rows; y++){
 
-//		blur(grayFrame,detectedEdge, Size(15,15));
-		GaussianBlur(grayFrame,detectedEdge,)
+						if(grayFrame.at<uchar>(y,x) > 170 && grayFrame.at<uchar>(y,x) < 255) {
 
-		//Canny detectiony
-		Canny(detectedEdge, detectedEdge, lowThres, highThres, kernel_size);
+							frame.at<Vec3b>(y,x) [0] = 0;
+							frame.at<Vec3b>(y,x) [1] = 255;
+							frame.at<Vec3b>(y,x) [2] = 0;
+						}
+					}
+				}
 
-		output = Scalar::all(0);
 
-		input.copyTo(output, detectedEdge);
+				//car next
+				for (x = 600 ; x < 700; x++) {
+					for(y = 490; y < 500; y++) {
+						if (grayFrame.at<uchar>(y,x) < 50) {
+							line(frame,Point(500,500),Point(1000,500),Scalar(0,0,0),3,8,0);
+							putText(frame, "Warning", Point(550,490),FONT_HERSHEY_SIMPLEX, 2, Scalar(0,0,255),5,8);
 
-		imshow("Original", input);
-		imshow("Box Filter", output);
+						}
+					}
+				}
 
-		if(waitKey(20) >= 0) break;
 
+				//car left red
+				for(x = 650; x < 700; x++){
+				y = 420;
+					if(grayFrame.at<uchar>(y,x) < 30) {
+						rectangle(frame, Rect(550,420,100,50), Scalar(0,0,255),5,8,0);
+					}
+				}
+
+
+				//car right blue
+				for(x = 680; x < 750; x++){
+				y = 420;
+					if(grayFrame.at<uchar>(y,x) < 30) {
+						rectangle(frame, Rect(680,420,100,50), Scalar(255,0,0),5,8,0);
+					}
+				}
+
+
+
+				//exchange lane
+				for(x = 500; x < 600; x++){
+					for(y = 1000; y < rows; y++){
+						if (grayFrame.at<uchar>(x,y) < 255){
+							putText(frame, "Exchange lane", Point(100,100),FONT_HERSHEY_SIMPLEX, 2, Scalar(0,128,255),5,8);
+						}
+					}
+				}
+
+				//imshow
+				imshow("Gray", grayFrame);
+				imshow("Result_gray",frame);
+
+				if(waitKey(20) >= 0) break;
+			}
+
+		return -1;
 	}
 
-	return 0;
 
-}
