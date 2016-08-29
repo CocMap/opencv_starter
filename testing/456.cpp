@@ -21,10 +21,6 @@ int main (int argc, char** argv){
 	int kernel_size = 3;
 
 
-
-
-
-
 	char videoFileName[50] = ("testingVideo.mp4");
 	VideoCapture cap(videoFileName);
 	if(!cap.isOpened()){
@@ -45,7 +41,7 @@ int main (int argc, char** argv){
 //	namedWindow("Canny",CV_WINDOW_AUTOSIZE);
 //
 //	namedWindow("Found Contour",CV_WINDOW_AUTOSIZE);
-	namedWindow("Drawing Contour",CV_WINDOW_AUTOSIZE);
+//	namedWindow("Drawing Contour",CV_WINDOW_AUTOSIZE);
 //	namedWindow("Result", CV_WINDOW_AUTOSIZE);
 	namedWindow("Gray",CV_WINDOW_NORMAL);
 //
@@ -129,13 +125,6 @@ int main (int argc, char** argv){
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), Scalar(0,128,255),2,8,0);
 		}
 
-		cout <<"Contour size: " <<contour.size() <<endl;
-
-
-
-
-
-
 		//car next
 		for (x = 600 ; x < 700; x++) {
 			for(y = 490; y < 500; y++) {
@@ -147,26 +136,42 @@ int main (int argc, char** argv){
 			}
 		}
 
-		//car far
-		for (x = 800 ; x < 850; x++) {
-			for(y = 410; y < 500; y++) {
-				if (grayFrame.at<uchar>(y,x) < 50) {
-					grayFrame.at<uchar>(y,x) = 255;
+		//car far left
+//		for(x = 800; x < 900; x++){
+//			for(y = 420; y < 520; y++){
+//				if (grayFrame.at<uchar>(520,800) < 255) {
 
-					rectangle(frame, Rect(700,405,100,50), Scalar(0,0,255),5,8,0);
+		rectangle(frame, Rect(420,750,100,50), Scalar(255,0,0),5,8,0);
+//				}
+//			}
+//		}
 
-						}
-					}
+
+		//car far right
+//		for(x = 700; x < 800; x++){
+//			for(y = 420; y < 520; y++){
+				if (grayFrame.at<uchar>(520,700) < 50) {
+
+					rectangle(frame, Rect(420,650,100,50), Scalar(0,0,255),5,8,0);
 				}
+//			}
+//		}
 
 
-
+		//exchange lane
+		for(x = 500; x < 600; x++){
+			for(y = 1000; y < rows; y++){
+				if (grayFrame.at<uchar>(x,y) < 100){
+					putText(frame, "Exchange lane", Point(100,100),FONT_HERSHEY_SIMPLEX, 2, Scalar(0,128,255),5,8);
+				}
+			}
+		}
 
 
 		//imshow
 		imshow("Gray", grayFrame);
 		imshow("Result_gray",frame);
-		imshow("Drawing Contour", drawing);
+//		imshow("Drawing Contour", drawing);
 
 
 		if(waitKey(20) >= 0) break;
@@ -174,4 +179,3 @@ int main (int argc, char** argv){
 
 	return -1;
 }
-
