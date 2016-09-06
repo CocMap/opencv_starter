@@ -23,6 +23,12 @@ int main (int argc, char** argv){
 
 	//global variables
 	int x,y;
+	int xTop = 100;
+	int yTop = 500;				//the first point, on the top of processing area
+	int xMu = 100;
+	int yMu = 200;				//the mutual point for 2 vector
+	int xBot = 400;
+	int yBot = 800;				//the last point in the, bottom right corner
 
 
 	//declare variables for Canny
@@ -63,7 +69,7 @@ int main (int argc, char** argv){
 //	namedWindow("Car detection", CV_WINDOW_AUTOSIZE);
 //	namedWindow("Process Window", CV_WINDOW_AUTOSIZE);
 //	namedWindow("1234", CV_WINDOW_AUTOSIZE);
-	namedWindow("12345", CV_WINDOW_AUTOSIZE);
+//	namedWindow("12345", CV_WINDOW_AUTOSIZE);
 
 
 	for (frameCount = 0; ; frameCount++) {
@@ -180,11 +186,6 @@ int main (int argc, char** argv){
 
 
 
-
-
-
-
-
 //find contour for vehicle and bound by rectangle
 		//find contour
 		//http://opencvexamples.blogspot.com/2013/09/find-contour.html
@@ -202,14 +203,13 @@ int main (int argc, char** argv){
 		int largestContour = 0;
 		int secondLargestIndex = 0;
 		int secondLargestContour = 0;
-		for( int i = 0; i< contour.size(); i++ )
-		{
+		for( int i = 0; i< contour.size(); i++ ){
 		    if(contour[i].size() > largestContour){
 		        secondLargestContour = largestContour;
 		        secondLargestIndex = largestIndex;
 		        largestContour = contour[i].size();
 		        largestIndex = i;
-		    }else if(contour[i].size() > secondLargestContour){
+		    } else if(contour[i].size() > secondLargestContour){
 		        secondLargestContour = contour[i].size();
 		        secondLargestIndex = i;
 		    }
@@ -217,80 +217,92 @@ int main (int argc, char** argv){
 
 
 
-		for (int i = 0; i < contour.size(); i++){
-			approxPolyDP (Mat (contour[i]), contour_poly[i], 5, true);
-			boundRect[i] = boundingRect(Mat(contour_poly[i]));
-			minEnclosingCircle((Mat)contour_poly[i],center[i],radius[i]);
-		}
+//		for (int i = 0; i < contour.size(); i++){
+//			approxPolyDP (Mat (contour[i]), contour_poly[i], 5, true);
+//			boundRect[i] = boundingRect(Mat(contour_poly[i]));
+//			minEnclosingCircle((Mat)contour_poly[i],center[i],radius[i]);
+//		}
 
 		//draw polygonal contour + bonding rect
-
-
 		Mat drawing = Mat::zeros(detectCarArea.size(),CV_8UC3);
 //		for (int i = 0; i < contour.size(); i++){
 //			drawContours(drawing, contour_poly, i, Scalar(0,128,255),1,8,vector<Vec4i>(),0,Point());
-//			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), Scalar(255,255,255),1,8,0);
+
+
+
+
+
+		Scalar color = Scalar(255,0,255);
+		drawContours( drawing, contour, largestIndex, color, 5, 8);
+		drawContours( drawing, contour, secondLargestIndex, color, 5, 8);
+
+		//rectangle(drawing, boundRect[i].t./ol(), boundRect[i].br(), Scalar(255,255,255),1,8,0);
 //		}
 
 
 
-		Scalar color = Scalar(0,255,255);
-		drawContours( drawing, contour, largestIndex, color, CV_FILLED, 8);
-		drawContours( drawing, contour, secondLargestIndex, color, CV_FILLED, 8);
-
-
-		cout <<contour.size() <<endl;
-
-
-		imshow("12345",drawing);
-		//display in the Process window
+//display in the Process window
 
 		for(x = 0; x < cols; x++){
 			for(y = 0; y < rows; y++){
-				if(drawing.at<Vec3b>(y,x)[0] == 0&&
-						drawing.at<Vec3b>(y,x)[1] == 255&&
-						drawing.at<Vec3b>(y,x)[2] == 255){
+				if(drawing.at<Vec3b>(y,x)[0] == 255&&
+					drawing.at<Vec3b>(y,x)[1] == 0&&
+					drawing.at<Vec3b>(y,x)[2] == 255){
 
 					houghLine.at<Vec3b>(y,x) [0] = 255;
-					houghLine.at<Vec3b>(y,x) [1] = 255;
-					houghLine.at<Vec3b>(y,x) [2] = 0;
+					houghLine.at<Vec3b>(y,x) [1] = 0;
+					houghLine.at<Vec3b>(y,x) [2] = 255;
 				}
 			}
 		}
-		
 
-				yTop = 500;
-				for (int x = 0; x < frame.cols; x++) {
-					if(drawingContour.at<uchar>(yTop,x) == 255) {
-						xTop = x;
-					}
-				}
-		
-				//mutual point
-				yMu = rows;
-				for (int x = 0; x < frame.cols; x++) {
-					if(drawingContour.at<uchar>(yMu,x) == 255) {
-						xMu = x;
-					}
-				}
-		
-				//bottom point
-				xBot = cols;
-				yBot = rows;
-		
+
+
+
+//angle
+//				yTop = 500;
+//				for (int x = 0; x < cols; x++) {
+//					while(houghLine.at<Vec3b>(yTop,x) [0] == 0 &&
+//						houghLine.at<Vec3b>(yTop,x) [1] == 0 &&
+//						houghLine.at<Vec3b>(yTop,x) [2] == 255) {
+//						xTop = x;
+//					}
+//				}
+//
+//				//mutual point
+//				yMu = rows;
+//				for (int x = 0; x < cols; x++) {
+//					while(houghLine.at<Vec3b>(yMu,x) [0] == 0 &&
+//						houghLine.at<Vec3b>(yMu,x) [1] == 0 &&
+//						houghLine.at<Vec3b>(yMu,x) [2] == 255) {
+//						xMu = x;
+//					}
+//				}
+//
+//				//bottom point
+//				xBot = cols;
+//				yBot = rows;
+//
 				//draw line
-				line(drawingContour, Point(xTop,yTop), Point(xMu,yMu),Scalar(0,0,255),3,8,0);
-				line(drawingContour, Point(xBot,yBot), Point(xMu,yMu),Scalar(0,128,255),3,8,0);
+
+				line(houghLine, Point(xTop,yTop), Point(xMu,yMu),Scalar(0,0,255),3,8,0);
+				line(houghLine, Point(xBot,yBot), Point(xMu,yMu),Scalar(0,128,255),3,8,0);
 
 
-				angle between 2 vector
+//				angle between 2 vector
 				double angleCurve;
-		
-				angleCurve = cos((xTop*yTop+xMu*yMu+xBot*yBot)/
-						(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))));
-		
-				cout <<"The angle: " <<angleCurve <<endl;
 
+//				angleCurve = cos((xTop*yTop+xMu*yMu+xBot*yBot)/
+//						(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))));
+
+				int para = 1;
+				angleCurve = atan(para);
+
+
+//				angleCurve = atan((yTop - yMu)/(xTop - xMu));
+
+				cout <<"The angle: " <<angleCurve <<endl;
+//
 
 		imshow("Lane Line",houghLine);
 
