@@ -20,12 +20,15 @@ int main (int argc, char** argv){
 	Mat blurFrame;
 	Mat Canny_output;
 
+
+	//global variables
 	int x,y;
-//	int xTop, yTop;				//the first point, on the top of processing area
-//	int xMu, yMu;				//the mutual point for 2 vector
-//	int xBot, yBot;				//the last point in the, bottom right corner
-
-
+	int xTop = 100;
+	int yTop = 500;				//the first point, on the top of processing area
+	int xMu = 100;
+	int yMu = 200;				//the mutual point for 2 vector
+	int xBot = 400;
+	int yBot = 800;				//the last point in the, bottom right corner
 
 
 	//declare variables for Canny
@@ -33,6 +36,7 @@ int main (int argc, char** argv){
 	int ratio = 3;
 	int highThres = ratio*lowThres;
 	int kernel_size = 3;
+
 
 	//open testing video, download from YOUTUBE
 	//vehicel night: https://www.youtube.com/watch?v=I8mJLHOS2eU
@@ -45,8 +49,10 @@ int main (int argc, char** argv){
 		return -1;
 	}
 
+
 	//take frame from camera
 	cap >> frame;
+
 
 
 	//show cols and rows of the window(frame)
@@ -57,68 +63,75 @@ int main (int argc, char** argv){
 
 
 	//create windows
-	namedWindow("Original", CV_WINDOW_NORMAL);
-	namedWindow("Rectangle",CV_WINDOW_AUTOSIZE);
-	namedWindow("Hough Line",CV_WINDOW_AUTOSIZE);
-	namedWindow("Contour_Hough Line", CV_WINDOW_AUTOSIZE);
-	namedWindow("Result", CV_WINDOW_AUTOSIZE);
-
+	namedWindow("Original", CV_WINDOW_AUTOSIZE);
+	namedWindow("Lane Line", CV_WINDOW_AUTOSIZE);
+//	namedWindow("Rectangle", CV_WINDOW_AUTOSIZE);
+//	namedWindow("Car detection", CV_WINDOW_AUTOSIZE);
+//	namedWindow("Process Window", CV_WINDOW_AUTOSIZE);
+//	namedWindow("1234", CV_WINDOW_AUTOSIZE);
+//	namedWindow("12345", CV_WINDOW_AUTOSIZE);
 
 
 	for (frameCount = 0; ; frameCount++) {
-		cap >> frame;
+			cap >> frame;
 
-	//	imshow("Original", frame);									//imshow the original video
+			imshow("Original", frame);									//imshow the original video
 
-		cvtColor(frame,grayFrame,CV_RGB2GRAY);						//make gray scale
+			cvtColor(frame,grayFrame,CV_RGB2GRAY);						//make gray scale
 
-		//change the color from gray Scale
-		for( x = 0; x < cols; x++) {
-			for (y = 500; y < rows; y++){
 
-				if(grayFrame.at<uchar>(y,x) > 170 && grayFrame.at<uchar>(y,x) < 255) {
 
-					frame.at<Vec3b>(y,x) [0] = 0;
-					frame.at<Vec3b>(y,x) [1] = 255;
-					frame.at<Vec3b>(y,x) [2] = 0;
+//change the color from gray Scale
+			for( x = 0; x < cols; x++) {
+				for (y = 500; y < rows; y++){
+
+					if(grayFrame.at<uchar>(y,x) > 170 && grayFrame.at<uchar>(y,x) < 255) {		//highlight the lane line to green color
+
+						frame.at<Vec3b>(y,x) [0] = 0;
+						frame.at<Vec3b>(y,x) [1] = 255;
+						frame.at<Vec3b>(y,x) [2] = 0;
+					}
 				}
 			}
-		}
-		imshow("Original", frame);
 
-		GaussianBlur(grayFrame,blurFrame,Size(3,3),7,7);			//filter the noise using GaussianBlur
+//filter the frame noise
+			//Gaussian
+			GaussianBlur(grayFrame,blurFrame,Size(3,3),7,7);	 		//filter the noise using GaussianBlur
+			Canny(blurFrame,Canny_output,lowThres, highThres, kernel_size);	//Canny edges
 
-		Canny(blurFrame,Canny_output,lowThres, highThres, kernel_size);	//Canny edges
-
-		Mat copyCanny(Canny_output);
-
-
-
-
+			Mat CannyOriginal;
+			Canny_output.copyTo(CannyOriginal);
+			Mat detectCarArea;
+			Canny_output.copyTo(detectCarArea);					//copy for car detection area
 
 
 
-		//crop the edge, just area using to detect the lane
 
+//crop the process area only. "Canny_output = crop Canny"
 
-		for(y = 0; y < 450; y++){
-			for(x = 0; x < frame.cols; x++){
-				Canny_output.at<uchar>(y,x) = 0;			//canny ecrased top of the edges
-			}
-		}
-
-		if (frameCount < 480) {
-			for(y = 450; y < 500; y++){
-				for(x = 800; x < cols; x++){
+			//canny ecrased top of the edges
+			for(y = 0; y < 450; y++){
+				for(x = 0; x < frame.cols; x++){
 					Canny_output.at<uchar>(y,x) = 0;
+					}
+				}
+
+
+			if (frameCount < 480) {				//crop first 480 frame
+				for(y = 450; y < 500; y++){
+					for(x = 800; x < cols; x++){
+						Canny_output.at<uchar>(y,x) = 0;
+					}
 				}
 			}
-		}
 
-		Mat cropCanny(Canny_output);								//Canny cropped, input for Contour
+			Mat cropCanny;
+			Canny_output.copyTo(cropCanny);
 
-		//Hough line
-		Mat houghLine(grayFrame);
+
+//hough line
+
+			Mat houghLine(frame);		//hough line on frame
 #if 0
 		vector<Vec2f> lines;
 		HoughLines(cropCanny, lines, 100, CV_PI/50, 100, 0, 0);
@@ -137,137 +150,171 @@ int main (int argc, char** argv){
 		vector<Vec4i> lines;
 		HoughLinesP(cropCanny, lines, 1, CV_PI/180, 100, 50, 50);
 		for(size_t i = 0; i < lines.size() ; i++ ){
-		    Vec4i l = lines[i];
-		    line( houghLine, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+			Vec4i l = lines[i];
+			line( houghLine, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
 		}
 #endif
+//		imshow("Lane line", houghLine);
 
-		imshow("Hough Line", houghLine);
 
-		//find contour on Crop Canny, only show the lines
+//crop the area for detect Car only
+		for(y = 0; y < 400; y++){
+			for(x = 0; x < cols; x++){
+				detectCarArea.at<uchar>(y,x) = 0;
+			}
+		}
+
+		for(y = 0; y < rows; y++){					//erase left corner
+			for(x = 0; x < 500; x++){
+				detectCarArea.at<uchar>(y,x) = 0;
+			}
+		}
+
+		for(y = 0; y < rows; y++){					//erase right corner
+			for(x = 800; x < cols; x++){
+				detectCarArea.at<uchar>(y,x) = 0;
+			}
+		}
+
+		for(y = 500; y < rows; y++){					//erase bottom
+			for(x = 0; x < cols; x++){
+				detectCarArea.at<uchar>(y,x) = 0;
+			}
+		}
+
+		rectangle(CannyOriginal,Rect(500,400,300,100),Scalar(255,0,0),1,8,0);
+
+
+
+//find contour for vehicle and bound by rectangle
+		//find contour
 		//http://opencvexamples.blogspot.com/2013/09/find-contour.html
 		vector<vector<Point> > contour;
 		vector<Vec4i> hierarchy;
-		findContours(Canny_output, contour, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0,0));
+		findContours(detectCarArea, contour, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
 		//Approximate contours to polygons and get bounding
-				vector<vector<Point> > contour_poly (contour.size());
-				vector<Rect>boundRect (contour.size());
-				vector<Point2f>center (contour.size());
-				vector<float>radius(contour.size());
+		vector<vector<Point> > contour_poly (contour.size());
+		vector<Rect>boundRect (contour.size());
+		vector<Point2f>center (contour.size());
+		vector<float>radius(contour.size());
 
-				contour.size() == 300;
+		int largestIndex = 0;
+		int largestContour = 0;
+		int secondLargestIndex = 0;
+		int secondLargestContour = 0;
+		for( int i = 0; i< contour.size(); i++ ){
+		    if(contour[i].size() > largestContour){
+		        secondLargestContour = largestContour;
+		        secondLargestIndex = largestIndex;
+		        largestContour = contour[i].size();
+		        largestIndex = i;
+		    } else if(contour[i].size() > secondLargestContour){
+		        secondLargestContour = contour[i].size();
+		        secondLargestIndex = i;
+		    }
+		}
 
-				for (int i = 0; i < contour.size(); i = i ++){
-					approxPolyDP (Mat (contour[i]), contour_poly[i], 3, true);
-					boundRect[i] = boundingRect(Mat(contour_poly[i]));
-					minEnclosingCircle((Mat)contour_poly[i],center[i],radius[i]);
-				}
 
-				//draw polygonal contour + bonding rect
-				Mat drawing = Mat::zeros(Canny_output.size(),CV_8UC3);
-				for (int i = 0; i < contour.size(); i = i++){
-					drawContours(drawing, contour_poly, i, Scalar(0,128,255),1,8,vector<Vec4i>(),0,Point());
-					rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), Scalar(0,128,255),2,8,0);
-				}
 
-				imshow("Rectangle",drawing);
-
-//		//draw contour
-//		Mat drawingContour = Mat::zeros(houghLine.size() ,CV_8UC3);
-//
-//		for (int i = 0; i < contour.size(); i++) {
-//			drawContours(drawingContour,contour,i,Scalar(255,255,255),2,8,hierarchy,0,Point());
+//		for (int i = 0; i < contour.size(); i++){
+//			approxPolyDP (Mat (contour[i]), contour_poly[i], 5, true);
+//			boundRect[i] = boundingRect(Mat(contour_poly[i]));
+//			minEnclosingCircle((Mat)contour_poly[i],center[i],radius[i]);
 //		}
-//
-//		imshow("Contour_Hough Line",drawingContour);
-//
+
+		//draw polygonal contour + bonding rect
+		Mat drawing = Mat::zeros(detectCarArea.size(),CV_8UC3);
+//		for (int i = 0; i < contour.size(); i++){
+//			drawContours(drawing, contour_poly, i, Scalar(0,128,255),1,8,vector<Vec4i>(),0,Point());
 
 
 
-//		//display in the process frame
-//		for (y = 0; y < rows; y++) {
-//			for (x = 0; x < cols; x++) {
-//				if(drawingContour.at<uchar>(y,x) == 255) {
-//
-//					frame.at<Vec3b>(y,x)[0] = 0;
-//					frame.at<Vec3b>(y,x)[1] = 0;
-//					frame.at<Vec3b>(y,x)[2] = 255;
+
+
+		Scalar color = Scalar(255,0,255);
+		drawContours( drawing, contour, largestIndex, color, 5, 8);
+		drawContours( drawing, contour, secondLargestIndex, color, 5, 8);
+
+		//rectangle(drawing, boundRect[i].t./ol(), boundRect[i].br(), Scalar(255,255,255),1,8,0);
+//		}
+
+
+
+//display in the Process window
+
+		for(x = 0; x < cols; x++){
+			for(y = 0; y < rows; y++){
+				if(drawing.at<Vec3b>(y,x)[0] == 255&&
+					drawing.at<Vec3b>(y,x)[1] == 0&&
+					drawing.at<Vec3b>(y,x)[2] == 255){
+
+					houghLine.at<Vec3b>(y,x) [0] = 255;
+					houghLine.at<Vec3b>(y,x) [1] = 0;
+					houghLine.at<Vec3b>(y,x) [2] = 255;
+				}
+			}
+		}
+
+
+
+
+//angle
+//				yTop = 500;
+//				for (int x = 0; x < cols; x++) {
+//					while(houghLine.at<Vec3b>(yTop,x) [0] == 0 &&
+//						houghLine.at<Vec3b>(yTop,x) [1] == 0 &&
+//						houghLine.at<Vec3b>(yTop,x) [2] == 255) {
+//						xTop = x;
+//					}
 //				}
-//			}
-//		}
-
-
-
-
-
-
-
-		//set angle
-
-		//finding 2 vector - lane line and the last line (last row)
-
-
-		//set up every single point
-		//top point
-//		yTop = 500;
-//		for (int x = 0; x < frame.cols; x++) {
-//			if(drawingContour.at<uchar>(yTop,x) == 255) {
-//				xTop = x;
-//			}
-//		}
 //
-//		//mutual point
-//		yMu = rows;
-//		for (int x = 0; x < frame.cols; x++) {
-//			if(drawingContour.at<uchar>(yMu,x) == 255) {
-//				xMu = x;
-//			}
-//		}
+//				//mutual point
+//				yMu = rows;
+//				for (int x = 0; x < cols; x++) {
+//					while(houghLine.at<Vec3b>(yMu,x) [0] == 0 &&
+//						houghLine.at<Vec3b>(yMu,x) [1] == 0 &&
+//						houghLine.at<Vec3b>(yMu,x) [2] == 255) {
+//						xMu = x;
+//					}
+//				}
 //
-//		//bottom point
-//		xBot = cols;
-//		yBot = rows;
+//				//bottom point
+//				xBot = cols;
+//				yBot = rows;
 //
-//		//draw line
-//		line(drawingContour, Point(xTop,yTop), Point(xMu,yMu),Scalar(0,0,255),3,8,0);
-//		line(drawingContour, Point(xBot,yBot), Point(xMu,yMu),Scalar(0,128,255),3,8,0);
+				//draw line
+
+				line(houghLine, Point(xTop,yTop), Point(xMu,yMu),Scalar(0,0,255),3,8,0);
+				line(houghLine, Point(xBot,yBot), Point(xMu,yMu),Scalar(0,128,255),3,8,0);
 
 
-		//angle between 2 vector
-//		double angleCurve;
+//				angle between 2 vector
+				double angleCurve;
+
+//				angleCurve = cos((xTop*yTop+xMu*yMu+xBot*yBot)/
+//						(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))));
+
+				int para = 1;
+				angleCurve = atan(para);
+
+
+//				angleCurve = atan((yTop - yMu)/(xTop - xMu));
+
+				cout <<"The angle: " <<angleCurve <<endl;
 //
-//		angleCurve = cos((xTop*yTop+xMu*yMu+xBot*yBot)/
-//				(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))));
-//
-//		cout <<"The angle: " <<angleCurve <<endl;
 
-
-
-		Mat displayBox = frame(cv::Rect(10, 10, 300, 400));
-		Mat color(displayBox.size(), CV_8UC3, cv::Scalar(255,0,0));
-		double alpha = 0.3;
-		addWeighted(color, alpha, displayBox, 1.0 - alpha , 0.0, displayBox);
-		rectangle(frame,Rect(10,10,300,400),Scalar(0,0,255),2,8,0);
-
-		imshow("Result",frame);
-
-
-
-
-
-
-
-
-
-
-
+		imshow("Lane Line",houghLine);
 
 
 		if(waitKey(20) >= 0) break;
 
 
-	}
+		}
 
 	return 0;
+
+
+
+
 }
