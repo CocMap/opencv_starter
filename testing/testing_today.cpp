@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#define PI 3.14159265
+
 using namespace cv;
 using namespace std;
 
@@ -23,12 +25,12 @@ int main (int argc, char** argv){
 
 	//global variables
 	int x,y;
-	int xTop = 100;
-	int yTop = 500;				//the first point, on the top of processing area
-	int xMu = 100;
-	int yMu = 200;				//the mutual point for 2 vector
-	int xBot = 400;
-	int yBot = 800;				//the last point in the, bottom right corner
+	int xTop ;
+	int yTop;				//the first point, on the top of processing area
+	int xMu;
+	int yMu;				//the mutual point for 2 vector
+	int xBot;
+	int yBot;				//the last point in the, bottom right corner
 
 
 	//declare variables for Canny
@@ -55,6 +57,8 @@ int main (int argc, char** argv){
 
 
 
+
+
 	//show cols and rows of the window(frame)
 	int cols = frame.cols;
 	int rows = frame.rows;
@@ -64,12 +68,12 @@ int main (int argc, char** argv){
 
 	//create windows
 	namedWindow("Original", CV_WINDOW_AUTOSIZE);
-	namedWindow("Lane Line", CV_WINDOW_AUTOSIZE);
+//	namedWindow("Lane Line", CV_WINDOW_NORMAL);
 //	namedWindow("Rectangle", CV_WINDOW_AUTOSIZE);
 //	namedWindow("Car detection", CV_WINDOW_AUTOSIZE);
 //	namedWindow("Process Window", CV_WINDOW_AUTOSIZE);
-//	namedWindow("1234", CV_WINDOW_AUTOSIZE);
-//	namedWindow("12345", CV_WINDOW_AUTOSIZE);
+//	namedWindow("Result", CV_WINDOW_NORMAL);
+	namedWindow("12345", CV_WINDOW_AUTOSIZE);
 
 
 	for (frameCount = 0; ; frameCount++) {
@@ -104,6 +108,8 @@ int main (int argc, char** argv){
 			Mat detectCarArea;
 			Canny_output.copyTo(detectCarArea);					//copy for car detection area
 
+			Mat angleArea;
+			Canny_output.copyTo(angleArea);
 
 
 
@@ -256,55 +262,64 @@ int main (int argc, char** argv){
 			}
 		}
 
+//calculate angle
+		yTop = 500;
+		for (int x = 400; x < 600; x++) {
+			if(angleArea.at<uchar>(yTop,x) == 255) {
+				xTop = x;
+			}
+		}
+
+		//mutual point
+		yMu = 700;
+		for (int x = 200; x < 1000; x++) {
+			if(angleArea.at<uchar>(yMu,x) == 255) {
+				xMu = x;
+			}
+		}
+
+		//bottom point
+		xBot = 1100;
+		yBot = 700;
+
+		//draw line
+		line(houghLine, Point(xTop,yTop), Point(xMu,yMu),Scalar(255,0,0),5,8,0);
+		line(houghLine, Point(xBot,yBot), Point(xMu,yMu),Scalar(255,0,0),5,8,0);
+
+
+//angle between 2 vector
+		double angleCurve;
+
+		angleCurve = acos((xTop*yTop+xMu*yMu+xBot*yBot)/
+				(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))))*180/PI;
+
+		cout <<"The angle: " <<angleCurve <<endl;
+
+//display in case of exchnage lane, turn left turn right
+
+		if(angleCurve >= 20) {
+			putText(frame, "Line 1",Point(50,50),FONT_HERSHEY_SIMPLEX, 1, Scalar(0,0,0),5,8);
+		}
+
+		else  {
+			putText(frame, "Line 2",Point(50,100),FONT_HERSHEY_SIMPLEX, 1, Scalar(0,0,0),5,8);
+		}
+
+//display paramter
+		Mat displayBox = frame(cv::Rect(10, 10, 300, 400));
+		Mat color2(displayBox.size(), CV_8UC3, Scalar(255,0,0));
+		double alpha = 0.3;
+		addWeighted(color2, alpha, displayBox, 1.0 - alpha , 0.0, displayBox);
+		rectangle(frame,Rect(10,10,300,400),Scalar(0,0,255),2,8,0);
 
 
 
-//angle
-//				yTop = 500;
-//				for (int x = 0; x < cols; x++) {
-//					while(houghLine.at<Vec3b>(yTop,x) [0] == 0 &&
-//						houghLine.at<Vec3b>(yTop,x) [1] == 0 &&
-//						houghLine.at<Vec3b>(yTop,x) [2] == 255) {
-//						xTop = x;
-//					}
-//				}
-//
-//				//mutual point
-//				yMu = rows;
-//				for (int x = 0; x < cols; x++) {
-//					while(houghLine.at<Vec3b>(yMu,x) [0] == 0 &&
-//						houghLine.at<Vec3b>(yMu,x) [1] == 0 &&
-//						houghLine.at<Vec3b>(yMu,x) [2] == 255) {
-//						xMu = x;
-//					}
-//				}
-//
-//				//bottom point
-//				xBot = cols;
-//				yBot = rows;
-//
-				//draw line
-
-				line(houghLine, Point(xTop,yTop), Point(xMu,yMu),Scalar(0,0,255),3,8,0);
-				line(houghLine, Point(xBot,yBot), Point(xMu,yMu),Scalar(0,128,255),3,8,0);
 
 
-//				angle between 2 vector
-				double angleCurve;
+//imshow the window
+		imshow("Result",frame);
+		imshow("12345",houghLine);
 
-//				angleCurve = cos((xTop*yTop+xMu*yMu+xBot*yBot)/
-//						(sqrt(pow(xTop,2) + pow(xMu,2) + pow(xBot,2))*sqrt(pow(yTop,2) + pow(yMu,2) + pow(yBot,2))));
-
-				int para = 1;
-				angleCurve = atan(para);
-
-
-//				angleCurve = atan((yTop - yMu)/(xTop - xMu));
-
-				cout <<"The angle: " <<angleCurve <<endl;
-//
-
-		imshow("Lane Line",houghLine);
 
 
 		if(waitKey(20) >= 0) break;
