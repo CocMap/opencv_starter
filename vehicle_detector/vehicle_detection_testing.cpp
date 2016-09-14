@@ -14,6 +14,9 @@
 using namespace cv;
 using namespace std;
 
+//filter and background 
+//http://docs.opencv.org/trunk/d1/dc5/tutorial_background_subtraction.html
+
 int main (int argc, char** argv){
 	//declare variables for frame
 	int frameCount;
