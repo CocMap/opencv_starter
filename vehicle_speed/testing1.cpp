@@ -7,78 +7,100 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio/videoio.hpp>
 
+//include time library
+#include <stdio.h>
+#include <time.h>
+
 using namespace cv;
 using namespace std;
 
-int main(int argc, char** argv) {
+
+int main (int argc, char** argv){
 	int frameCount;
 	Mat frame, preFrame, grayDiff, frameDiff;
-	Mat frameDetect;
+	Mat grayFrame, blurFrame, Canny_output;
 
 
-	//global variables
-	int motion = 0;
-//	float distance;
-//	double speed;
-//	double t1;
-//	double t2;
-//	double deltaTime = t2 - t1;
+	//declare variable for motion
+
+	double vehicle_speed, vehicle_distance, vehicle_time;
+
+
+	//declare variables for Canny
+	int const lowThres = 100;
+	int ratio = 3;
+	int highThres = ratio*lowThres;
+	int kernel_size = 3;
 
 
 	char videoFileName[50] = ("speedVehicle.MOV");
-	VideoCapture cap (videoFileName);
-	if(!cap.isOpened()) {
-		cout << "Error loading video file, please check the source file!" <<endl;
+	VideoCapture cap(videoFileName);
+	if(!cap.isOpened()){
+		cout << "Error loading camera, please check your camera connection! "
+				<<endl;											//check if the camera open successfully
 		return -1;
 	}
 
 	cap >> frame;
-
 	int cols = frame.cols;
 	int rows = frame.rows;
 
-	//show the size of the frame
-	cout <<"Frame column is: " <<cols <<endl;
-	cout <<"Frame rows is: " <<rows <<endl;
+	cout <<"Frame cols are: " <<cols <<endl;
+	cout <<"Frame rows are: " <<rows <<endl;
 
 
-	//create the window
+	//create window
 	namedWindow("Original", CV_WINDOW_NORMAL);
-	namedWindow("Gray Difference", CV_WINDOW_NORMAL);
+	namedWindow("Process", CV_WINDOW_NORMAL);
 
-
-	for( ; ; frameCount++) {
-		frame.copyTo(preFrame);									//copy a frame, set as previous frame
-		cap >> frame;											//take one frame, set as current frame
+	for ( frameCount = 0; ; frameCount++) {
+		frame.copyTo(preFrame);
+		cap >> frame;
 		flip(frame,frame,0);
+
+		absdiff(frame,preFrame,frameDiff);
+		cvtColor(frameDiff,grayDiff,CV_RGB2GRAY);
+
+		GaussianBlur(grayDiff,blurFrame,Size(3,3),7,7);	 		//filter the noise using GaussianBlur
+		Canny(blurFrame,Canny_output,lowThres, highThres, kernel_size);	//Canny edges
+
+		int t1 = 0;
+		int t2 = 0;
+		double fps = cap.get(CV_CAP_PROP_FPS);		//fps = 59.9535ms
+//		cout <<"fps: " <<fps <<endl;
+
+
+		for (int y = 0; y < rows; y++){
+			if (Canny_output.at<uchar>(y,100) > 250) {
+				t1 = frameCount;
+				break;
+				return 0;
+
+			}
+		}
+
+
+		for (int y = 0; y < rows; y++){
+			if (Canny_output.at<uchar>(y,1820) > 250) {
+				t2 = frameCount;
+				break;
+				return 0;
+			}
+		}
+
+			vehicle_distance = 10;
+			vehicle_time = (t2 - t1)*fps/100000;	//ms
+			vehicle_speed = (vehicle_distance/vehicle_time);
+			if(vehicle_time > 0) {
+				cout <<"Vehicle time: " <<vehicle_time <<endl;
+				cout <<"Speed: " <<vehicle_speed <<endl;
+			}
+
 		imshow("Original",frame);
-
-		absdiff(frame,preFrame,frameDiff);						//make the difference between 2 frames, frameDiff = RGB diff
-		cvtColor(frameDiff, grayDiff, CV_RGB2GRAY);				//change the difference to gray scale
-
-		imshow("Gray Difference",grayDiff);
-
-		motion = motion + frame.at<uchar>(0,0); 				//detect through motion
-//
-//		for(int x = 0; x < cols; x++){
-//			for(int y = 0; y < rows; y++) {
-//				motion = motion + frame.at<uchar>(y,x);
-//
-//				rectangle(frame,Rect(x,y,100,200), Sca;r)
-//
-//
-//			}
-//		}
-//
-
-
-
-
-
+		imshow("Process", Canny_output);
 
 		if(waitKey(20) >= 0) break;
 	}
 
 	return 0;
-
 }
