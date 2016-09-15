@@ -23,7 +23,8 @@ int main (int argc, char** argv){
 
 	//declare variable for motion
 
-	double vehicle_speed, vehicle_distance, vehicle_time;
+	double vehicle_speed_mps, vehicle_distance, vehicle_time;
+	double vehicle_speed_kmph;
 
 
 	//declare variables for Canny
@@ -46,7 +47,7 @@ int main (int argc, char** argv){
 	int rows = frame.rows;
 
 	cout <<"Frame cols are: " <<cols <<endl;
-	cout <<"Frame rows are: " <<rows <<endl;
+	cout <<"Frame rows are: " <<rows <<endl <<endl;
 
 
 	//create window
@@ -67,11 +68,9 @@ int main (int argc, char** argv){
 		int t1 = 0;
 		int t2 = 0;
 		double fps = cap.get(CV_CAP_PROP_FPS);		//fps = 59.9535ms
-//		cout <<"fps: " <<fps <<endl;
-
 
 		for (int y = 0; y < rows; y++){
-			if (Canny_output.at<uchar>(y,100) > 250) {
+			if (Canny_output.at<uchar>(y,10) > 250) {
 				t1 = frameCount;
 				break;
 				return 0;
@@ -81,20 +80,28 @@ int main (int argc, char** argv){
 
 
 		for (int y = 0; y < rows; y++){
-			if (Canny_output.at<uchar>(y,1820) > 250) {
+			if (Canny_output.at<uchar>(y,cols - 10) > 250) {
 				t2 = frameCount;
 				break;
 				return 0;
 			}
 		}
 
-			vehicle_distance = 10;
-			vehicle_time = (t2 - t1)*fps/100000;	//ms
-			vehicle_speed = (vehicle_distance/vehicle_time);
+			vehicle_distance = 18;	//m
+			vehicle_time = (t2 - t1)*(1/fps);	//s
+			vehicle_speed_mps = vehicle_distance/vehicle_time;
 			if(vehicle_time > 0) {
-				cout <<"Vehicle time: " <<vehicle_time <<endl;
-				cout <<"Speed: " <<vehicle_speed <<endl;
+				cout <<"Distance: " <<vehicle_distance << " m" <<endl;
+				cout <<"Time: " <<vehicle_time <<" s" <<endl;
+				cout <<"Speed in m/s: " <<vehicle_speed_mps <<" m/s" <<endl;
+
+				vehicle_speed_kmph = vehicle_speed_mps*3600/1000;
+				cout <<"Speed in km/h: " <<vehicle_speed_kmph <<" km/h" <<endl;
+
+
+				break;
 			}
+
 
 		imshow("Original",frame);
 		imshow("Process", Canny_output);
