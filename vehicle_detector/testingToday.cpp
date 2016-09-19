@@ -77,7 +77,7 @@ int main (int argc, char** argv){
 //	namedWindow("Lane Line", CV_WINDOW_NORMAL);
 //	namedWindow("Rectangle", CV_WINDOW_AUTOSIZE);
 //	namedWindow("Car detection", CV_WINDOW_AUTOSIZE);
-	namedWindow("Gray Difference", CV_WINDOW_NORMAL);
+	namedWindow("Process", CV_WINDOW_NORMAL);
 	namedWindow("Result", CV_WINDOW_NORMAL);
 	namedWindow("12345", CV_WINDOW_NORMAL);
 
@@ -97,7 +97,7 @@ int main (int argc, char** argv){
 			for( x = 0; x < cols; x++) {
 				for (y = 500; y < rows; y++){
 
-					if(grayFrame.at<uchar>(y,x) > 170 && grayFrame.at<uchar>(y,x) < 255) {		//highlight the lane line to green color
+					if(grayFrame.at<uchar>(y,x) > 160 && grayFrame.at<uchar>(y,x) < 255) {		//highlight the lane line to green color
 
 						frame.at<Vec3b>(y,x) [0] = 0;
 						frame.at<Vec3b>(y,x) [1] = 255;
@@ -118,6 +118,10 @@ int main (int argc, char** argv){
 
 			Mat angleArea;
 			Canny_output.copyTo(angleArea);
+
+			Mat curveArea;
+			Canny_output.copyTo(curveArea);
+
 
 
 
@@ -141,6 +145,8 @@ int main (int argc, char** argv){
 
 			Mat cropCanny;
 			Canny_output.copyTo(cropCanny);
+
+
 
 
 //hough line
@@ -321,37 +327,47 @@ int main (int argc, char** argv){
 		rectangle(frame,Rect(10,10,300,400),Scalar(0,0,255),2,8,0);
 
 //draw process area detect deviation
-		int leftCenter = 250;
+		int leftCenter = 280;
 		int rightCenter = 1030;
 		int xColor;
 		int xTest, yTest;
 		int randColor = rand() % 256;
-		rectangle(houghLine,Rect(100,520,1080,200),Scalar(0,0,255),2,8);
+		rectangle(houghLine,Rect(100,620,1080,100),Scalar(0,0,255),2,8);
+		line(houghLine,Point(cols/2,520),Point(cols/2,rows),Scalar(255,0,255),2,8,0);
 		line(houghLine,Point(100,620), Point(400,620),Scalar(255,0,255),2,8,0);
 		line(houghLine,Point(880,620), Point(1180,620),Scalar(255,0,255),2,8,0);
 
+//draw in Canny area
+		rectangle(curveArea,Rect(100,620,1080,100),Scalar(255,255,255),2,8);
+		line(curveArea,Point(cols/2,620),Point(cols/2,rows),Scalar(255,255,255),2,8,0);
+		line(curveArea,Point(100,670), Point(400,670),Scalar(255,255,255),2,8,0);
+		line(curveArea,Point(880,670), Point(1180,670),Scalar(255,255,255),2,8,0);
+
 		for(xTest = 880 ; xTest < 1180; xTest++){
 			for(yTest = 600;yTest < 605; yTest++){
-				houghLine.at<uchar>(yTest,xTest) = 255;
-				if(houghLine.at<Vec3b>(yTest,xTest) [0] == 0 &&
-					houghLine.at<Vec3b>(yTest,xTest) [1] == 0 &&
-					houghLine.at<Vec3b>(yTest,xTest) [2] == 255) {
 
-
+				if(curveArea.at<Vec3b>(yTest,xTest) [0] == 255 &&
+					curveArea.at<Vec3b>(yTest,xTest) [1] == 255 &&
+					curveArea.at<Vec3b>(yTest,xTest) [2] == 255) {
 
 					xColor = xTest;
 
 
-					if(xColor - rightCenter > 50 && angleCurve > 20){
-						putText(frame, "TURN RIGHT",Point(50,100),FONT_HERSHEY_SIMPLEX, 1, Scalar(randColor,randColor,randColor),5,8);
+					if(xColor - rightCenter > 50) {
+//							&& angleCurve > 20){
+						putText(houghLine, "TURN RIGHT",Point(50,100),FONT_HERSHEY_SIMPLEX, 1, Scalar(randColor,randColor,randColor),5,8);
 					}
 
-					if(rightCenter - xColor > 100 && angleCurve < 20){
-						putText(frame, "TURN LEFT",Point(50,200),FONT_HERSHEY_SIMPLEX, 1, Scalar(0,0,0),5,8);
+					if(leftCenter - xColor > 50 ){
+						//&& angleCurve < 20){
+
+						putText(houghLine, "TURN LEFT",Point(50,200),FONT_HERSHEY_SIMPLEX, 1, Scalar(randColor,randColor,randColor),5,8);
 					}
 				}
 			}
 		}
+
+
 
 //		for(xTest = 680; xTest < 1180; xTest++){
 //			for(yTest = 605;yTest < 620; yTest++){
@@ -371,7 +387,11 @@ int main (int argc, char** argv){
 
 //imshow the window
 		imshow("Result",frame);
-		imshow("12345",houghLine);
+		imshow("12345",curveArea);
+		imshow("Process",houghLine);
+
+
+
 		if(waitKey(20) >= 0) break;
 		}
 
