@@ -100,7 +100,6 @@ int main (int argc, char** argv){
 
 //			imshow("Testing",frame);
 
-
 //filter the frame noise
 			//Gaussian
 			GaussianBlur(grayFrame,blurFrame,Size(3,3),7,7);	 				//filter the noise using GaussianBlur
@@ -239,6 +238,7 @@ int main (int argc, char** argv){
 //			imshow("Testing",drawing);
 
 
+
 //display in the Process window
 
 		for(x = 0; x < cols; x++){
@@ -300,7 +300,7 @@ int main (int argc, char** argv){
 
 		putText(frame, "Lane",Point(80,150),FONT_HERSHEY_SIMPLEX, 1, Scalar(0,0,0),3,8);
 
-		if(angleCurve >= 20) {
+		if(angleCurve <= 100) {
 			putText(frame, "1",Point(160,160),FONT_HERSHEY_SIMPLEX, 2, Scalar(0,0,255),5,8);
 		}
 
@@ -370,6 +370,8 @@ int main (int argc, char** argv){
 				}
 			}
 		}
+
+
 
 
 //imshow the window
