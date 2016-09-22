@@ -98,9 +98,20 @@ int main (int argc, char** argv){
 				vehicle_speed_kmph = vehicle_speed_mps*3600/1000;
 				cout <<"Speed in km/h: " <<vehicle_speed_kmph <<" km/h" <<endl;
 
-
-				break;
 			}
+
+			putText(Canny_output,"Distance: 18 meters", Point (20,50),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2,8);
+			char nameA[100];
+			sprintf(nameA,"Time: %.2f", vehicle_time);
+			putText(Canny_output, nameA, Point (20,100),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2,8);
+
+			char nameB[100];
+			sprintf(nameB,"Speed in m/s: %.2f", vehicle_speed_mps);
+			putText(Canny_output, nameB, Point (20,150),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2,8);
+
+			char nameC[100];
+			sprintf(nameC,"Speed in km/h: %.2f", vehicle_speed_kmph);
+			putText(Canny_output, nameC, Point (20,200),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2,8);
 
 
 		imshow("Original",frame);
